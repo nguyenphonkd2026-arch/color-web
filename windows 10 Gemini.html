@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows 10 Pro - Ultimate PC with Web Browser</title>
+    <style>
+        :root {
+            --win-blue: #0078d7;
+            --taskbar-bg: rgba(0, 0, 0, 0.9);
+            --key-bg: #3d4652;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { 
+            background: #1e272e; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; font-family: 'Segoe UI', sans-serif; padding-top: 5px;
+            overflow: hidden;
+        }
+
+        /* KHUNG MÀN HÌNH */
+        .monitor-frame {
+            position: relative; width: 1100px; height: 650px; background: #111;
+            border: 20px solid #1a1a1a; border-bottom-width: 45px; border-radius: 15px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+        }
+
+        .screen { 
+            width: 100%; height: 100%; 
+            background: url('https://wallpaperaccess.com/full/222439.jpg') center/cover; 
+            position: relative; overflow: hidden; transition: 0.5s;
+        }
+        .screen.power-off { filter: brightness(0); background: black !important; }
+
+        /* DESKTOP */
+        .desktop { padding: 15px; display: grid; grid-template-rows: repeat(6, 90px); grid-auto-flow: column; gap: 10px; height: calc(100% - 40px); }
+        .icon {
+            width: 80px; height: 90px; display: flex; flex-direction: column; align-items: center;
+            color: white; text-align: center; font-size: 11px; cursor: pointer; border: 1px solid transparent; padding: 5px;
+        }
+        .icon:hover { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .icon img { width: 42px; margin-bottom: 5px; }
+
+        /* CỬA SỔ WINDOWS */
+        .window {
+            position: absolute; background: white; border-radius: 5px; box-shadow: 0 15px 50px rgba(0,0,0,0.7);
+            display: none; flex-direction: column; z-index: 1000; border: 1px solid #777;
+        }
+        .win-header { background: #f3f3f3; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; cursor: move; }
+        .win-ctrls span { cursor: pointer; padding: 2px 10px; font-weight: bold; }
+        .win-ctrls .close:hover { background: #e81123; color: white; }
+        .win-body { flex: 1; position: relative; background: #fff; }
+
+        /* TRÌNH DUYỆT BROWSER */
+        .browser-bar { display: flex; padding: 5px; background: #eee; border-bottom: 1px solid #ccc; gap: 5px; }
+        .browser-bar input { flex: 1; padding: 5px 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
+        .browser-bar button { padding: 5px 15px; background: var(--win-blue); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
+
+        /* TASKBAR & START */
+        .taskbar { position: absolute; bottom: 0; width: 100%; height: 40px; background: var(--taskbar-bg); display: flex; align-items: center; z-index: 2000; }
+        .start-btn { width: 48px; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .start-btn:hover { background: rgba(255,255,255,0.1); }
+        .taskbar-clock { margin-left: auto; color: white; font-size: 11px; padding-right: 15px; text-align: right; }
+
+        /* BÀN PHÍM FULL 104 */
+        .keyboard {
+            background: #2d3436; padding: 10px; border-radius: 10px;
+            display: grid; grid-template-columns: repeat(22, 1fr); gap: 4px;
+            box-shadow: 0 8px 0 #111; width: 1100px; margin-top: 15px;
+        }
+        .key {
+            background: var(--key-bg); color: #ecf0f1; border-radius: 4px;
+            height: 35px; display: flex; align-items: center; justify-content: center;
+            font-size: 9px; cursor: pointer; border-bottom: 3px solid #111; font-weight: bold;
+        }
+        .key:active { transform: translateY(2px); border-bottom: none; background: var(--win-blue); }
+        .key.wide { grid-column: span 2; }
+        .key.space { grid-column: span 7; }
+
+        /* CHUỘT */
+        .mouse { width: 50px; height: 85px; background: #2d3436; border-radius: 25px; position: fixed; right: 50px; bottom: 50px; cursor: grab; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 3000; }
+    </style>
+</head>
+<body>
+
+    <div class="monitor-frame">
+        <div class="screen" id="pcScreen">
+            
+            <div class="desktop">
+                <div class="icon" onclick="openApp('browser')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/888/888846.png">
+                    <div>Browser</div>
+                </div>
+                <div class="icon" onclick="openApp('note')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2965/2965335.png">
+                    <div>Notepad</div>
+                </div>
+                <div class="icon" onclick="openApp('device')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1004/1004128.png">
+                    <div>Device Info</div>
+                </div>
+            </div>
+
+            <div id="win-browser" class="window" style="top:30px; left:50px; width:800px; height:500px; display:none;">
+                <div class="win-header"><span>Web Browser</span><div class="win-ctrls"><span class="close" onclick="closeApp('browser')">×</span></div></div>
+                <div class="browser-bar">
+                    <input type="text" id="urlInput" placeholder="Nhập địa chỉ https://... (Ví dụ: https://www.bing.com)">
+                    <button onclick="navigate()">Go</button>
+                </div>
+                <div class="win-body">
+                    <iframe id="webFrame" src="about:blank"></iframe>
+                </div>
+            </div>
+
+            <div id="win-note" class="window" style="top:50px; left:100px; width:450px; height:350px;">
+                <div class="win-header"><span>Notepad</span><div class="win-ctrls"><span class="close" onclick="closeApp('note')">×</span></div></div>
+                <div class="win-body"><textarea id="notepadInput" style="width:100%; height:100%; border:none; padding:10px; outline:none; font-family:Consolas; resize:none;"></textarea></div>
+            </div>
+
+            <div id="win-device" class="window" style="top:80px; left:150px; width:400px; height:400px;">
+                <div class="win-header"><span>System Info</span><div class="win-ctrls"><span class="close" onclick="closeApp('device')">×</span></div></div>
+                <div class="win-body" style="padding:20px;">
+                    <h2 style="color:var(--win-blue)">PC Specifications</h2><br>
+                    <p><b>Processor:</b> Intel Core i9-14900K @ 6.0GHz</p>
+                    <p><b>Memory:</b> 128 GB DDR5 RAM</p>
+                    <p><b>Storage:</b> 4TB NVMe SSD</p>
+                    <p><b>OS:</b> Windows 10 Virtualized Pro</p>
+                    <p><b>Network:</b> Connected (High Speed)</p>
+                </div>
+            </div>
+
+            <div class="taskbar">
+                <div class="start-btn" onclick="shutdownPC()"><img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Windows_logo_-_2012_%28blue%29.svg" width="20"></div>
+                <div class="taskbar-clock" id="clock">12:00 PM<br>13/03/2026</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="keyboard">
+        <div class="key">Esc</div><div class="key">F1-F12</div><div class="key">Prt</div><div class="key">Num</div><div class="key">/</div><div class="key">*</div><div class="key">-</div><div class="key" style="background:red" onclick="shutdownPC()">OFF</div>
+        <div class="key">~</div><div class="key" onclick="type('1')">1</div><div class="key" onclick="type('2')">2</div><div class="key" onclick="type('3')">3</div><div class="key" onclick="type('4')">4</div><div class="key" onclick="type('5')">5</div><div class="key" onclick="type('6')">6</div><div class="key" onclick="type('7')">7</div><div class="key" onclick="type('8')">8</div><div class="key" onclick="type('9')">9</div><div class="key" onclick="type('0')">0</div><div class="key wide" onclick="type('BS')">Back</div><div class="key">7</div><div class="key">8</div><div class="key">9</div><div class="key">+</div>
+        <div class="key wide">Tab</div><div class="key" onclick="type('Q')">Q</div><div class="key" onclick="type('W')">W</div><div class="key" onclick="type('E')">E</div><div class="key" onclick="type('R')">R</div><div class="key" onclick="type('T')">T</div><div class="key" onclick="type('Y')">Y</div><div class="key" onclick="type('U')">U</div><div class="key" onclick="type('I')">I</div><div class="key" onclick="type('O')">O</div><div class="key" onclick="type('P')">P</div><div class="key wide" onclick="type('ENT')">Enter</div><div class="key">4</div><div class="key">5</div><div class="key">6</div><div class="key">.</div>
+        <div class="key wide">Caps</div><div class="key" onclick="type('A')">A</div><div class="key" onclick="type('S')">S</div><div class="key" onclick="type('D')">D</div><div class="key" onclick="type('F')">F</div><div class="key" onclick="type('G')">G</div><div class="key" onclick="type('H')">H</div><div class="key" onclick="type('J')">J</div><div class="key" onclick="type('K')">K</div><div class="key" onclick="type('L')">L</div><div class="key">;</div><div class="key">'</div><div class="key wide">Shift</div><div class="key">1</div><div class="key">2</div><div class="key">3</div><div class="key">Ent</div>
+        <div class="key wide">Shift</div><div class="key" onclick="type('Z')">Z</div><div class="key" onclick="type('X')">X</div><div class="key" onclick="type('C')">C</div><div class="key" onclick="type('V')">V</div><div class="key" onclick="type('B')">B</div><div class="key" onclick="type('N')">N</div><div class="key" onclick="type('M')">M</div><div class="key">,</div><div class="key">.</div><div class="key">/</div><div class="key wide">Ctrl</div><div class="key wide">0</div><div class="key">.</div><div class="key">←↓→</div>
+        <div class="key">Ctrl</div><div class="key">Win</div><div class="key">Alt</div><div class="key space" onclick="type(' ')">Space Bar</div><div class="key">Alt</div><div class="key">Win</div><div class="key">Ctrl</div>
+    </div>
+
+    <div id="mouse" class="mouse"></div>
+
+    <script>
+        // Điều hướng Web
+        function navigate() {
+            let url = document.getElementById('urlInput').value;
+            if (!url.startsWith('http')) url = 'https://' + url;
+            document.getElementById('webFrame').src = url;
+        }
+
+        function openApp(id) { document.getElementById('win-' + id).style.display = 'flex'; }
+        function closeApp(id) { document.getElementById('win-' + id).style.display = 'none'; }
+        
+        function shutdownPC() {
+            document.getElementById('pcScreen').classList.add('power-off');
+            setTimeout(() => alert("Hệ thống đã tắt."), 300);
+        }
+
+        function type(k) {
+            const n = document.getElementById('notepadInput');
+            if(document.getElementById('win-note').style.display !== 'flex') return;
+            if(k === 'BS') n.value = n.value.slice(0, -1);
+            else if(k === 'ENT') n.value += '\n';
+            else n.value += k;
+        }
+
+        const m = document.getElementById('mouse');
+        let d = false;
+        m.onmousedown = () => d = true;
+        document.onmouseup = () => d = false;
+        document.onmousemove = (e) => { if(d) { m.style.left = e.clientX-25+'px'; m.style.top = e.clientY-40+'px'; } }
+        
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').innerHTML = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + "<br>" + now.toLocaleDateString('vi-VN');
+        }
+        setInterval(updateTime, 1000); updateTime();
+    </script>
+</body>
+</html>
